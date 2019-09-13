@@ -1,4 +1,4 @@
-# S19-Team2
+# LunaH-Map Deep Space Trajectory Visualizer
 
 ## Build Instructions
 
