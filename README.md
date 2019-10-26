@@ -12,6 +12,7 @@ To begin, install the following packages:
 - build-essential
 - python3-dev
 - nodejs
+- npm
 
 NOTE: On Ubuntu, you may have to enable the "Universe" PPA to be able to install libboost-python-dev. You can do so by running `add-apt-repository universe` as root.
 
@@ -33,7 +34,7 @@ afterwards, `cd` back to the project
 
 This will also move the spyce library into the project root where the flask server is expecting it.
 
-For the frontend, before being able to compile it, you mus install the dependencies:
+For the frontend, before being able to compile it, you must install the dependencies:
 ```bash
 npm install
 ```
