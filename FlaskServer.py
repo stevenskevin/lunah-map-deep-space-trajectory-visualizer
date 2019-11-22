@@ -7,26 +7,39 @@ EARTH = 399
 app = Flask(__name__)
 kernels = []
 main_subject_id = None
-main_subject_name = ""
+main_subject_name = ''
+
 
 #
 # Helper Functions
 #
 
 def load_config():
+    """
+    Load the information from config/config.json into appropriate
+    global variables
+    """
     global main_subject_id
     global main_subject_name
 
     with open('config/config.json') as conf_file:
         conf_data = json.load(conf_file)
         for kern in conf_data['kernels']:
-            kernel_filepath = "config/kernels/" + kern
+            kernel_filepath = 'config/kernels/' + kern
             spyce.add_kernel(kernel_filepath)
             kernels.append(kernel_filepath)
         main_subject_id = conf_data['main_subject_id']
         main_subject_name = conf_data['main_subject_name']
 
+
 def get_object(identifier):
+    """
+    Look up the object with the given ID (int or str) or name (str), and
+    return a dict containing its ID and name, as
+    {'id': id, 'name': name}
+
+    Abort with a 404 if no such object can be found.
+    """
     obj_name = None
     obj_id = None
     try:
@@ -34,27 +47,25 @@ def get_object(identifier):
     except ValueError:
         obj_name = identifier
 
-    if obj_id == main_subject_id or obj_name == main_subject_name or obj_name == "main":
-        return id_and_name_dict(main_subject_id, main_subject_name)
+    if obj_id == main_subject_id or obj_name == main_subject_name or obj_name == 'main':
+        return {'id': main_subject_id, 'name': main_subject_name}
     else:
         try:
             if obj_id:
                 obj_name = spyce.id_to_str(obj_id)
             else:
                 obj_id = spyce.str_to_id(obj_name)
-            return id_and_name_dict(obj_id, obj_name)
+            return {'id': obj_id, 'name': obj_name}
         except spyce.InternalError:
-            abort(404, "SPICE object not found.")
+            abort(404, 'SPICE object not found.')
         except spyce.IDNotFoundError:
-            abort(404, "SPICE object not found.")
+            abort(404, 'SPICE object not found.')
 
-def id_and_name_dict(obj_id, name):
-    return {
-        'id': obj_id,
-        'name': name
-    }
 
 def frame_to_dict(frame):
+    """
+    Return a dict containing the frame's x/y/z/dx/dy/dz attributes.
+    """
     return {
         'x': frame.x,
         'y': frame.y,
@@ -64,22 +75,31 @@ def frame_to_dict(frame):
         'dz': frame.dz
     }
 
+
 #
 # API Endpoints
 #
 
 @app.route('/')
 def root():
-    return redirect("/index.html")
+    """
+    Redirect to index page
+    """
+    return redirect('/index.html')
+
 
 @app.route('/<path:filename>', methods=['GET'])
 def get_file(filename):
+    """
+    Get the requested file path from the dist/ folder
+    """
     return send_from_directory('dist', filename)
+
 
 @app.route('/api/objects', methods=['GET'])
 def get_all_objects():
     """
-        returns an array of <SPICE_object>
+    Return an array of all available SPICE objects (as ID/name dicts)
     """
     jsonResponse = []
     for k in kernels:
@@ -91,21 +111,23 @@ def get_all_objects():
             pass
     return jsonify(jsonResponse)
 
+
 @app.route('/api/objects/<object_identifier>', methods=['GET'])
 def handle_get_object_request(object_identifier):
     """
-        returns: <SPICE_object>
+    Return the ID/name dict for a single specified object
     """
     return jsonify(get_object(object_identifier))
+
 
 @app.route('/api/objects/<object_identifier>/coverage', methods=['GET'])
 def get_coverage_window(object_identifier):
     """
-        returns <coverage_window>:
-        {
-            start: <ISO_8601 string>
-            end: <ISO_8601 string>
-        }
+    Return the coverage window for the specified object:
+    {
+        start: <ISO_8601 string>,
+        end: <ISO_8601 string>,
+    }
     """
 
     NAIF_id = get_object(object_identifier)['id']
@@ -119,44 +141,44 @@ def get_coverage_window(object_identifier):
             pass
     if len(windows_piecewise) > 0:
         return jsonify({
-            'start': spyce.et_to_utc(windows_piecewise[0][0], "ISOC"),
-            'end': spyce.et_to_utc(windows_piecewise[-1][1], "ISOC")
+            'start': spyce.et_to_utc(windows_piecewise[0][0], 'ISOC'),
+            'end': spyce.et_to_utc(windows_piecewise[-1][1], 'ISOC')
         })
     else:
         abort(404, "No Coverage found")
 
+
 @app.route('/api/objects/<object_identifier>/frames', methods=['POST'])
 def get_frame_data(object_identifier):
     """
-        input:
-        {
-            times: array of <ISO_8601 strings>,
-            observer: <int> or <string> : NAIF ID or NAIF name.
-        }
+    Get the frame data for the specified objects at the provided times.
 
-        returns: array of <frame_data_object>
-        [
-            {
-                date: <ISO_8601 string>,
-                frame: <frame_object>
+    Request body:
+    {
+        times: array of <ISO_8601 strings>,
+        observer: (int or string: NAIF ID or NAIF name),
+    }
+
+    Response: array of frame data objects:
+    [
+        {
+            date: <ISO_8601 string>,
+            frame: {
+                x: <float>,
+                y: <float>,
+                z: <float>,
+                dx: <float>,
+                dy: <float>,
+                dz: <float>,
             }
-        ]
-
-        frame_object:
-        {
-            x: float
-            y: float
-            z: float
-            dx: float
-            dy: float
-            dz: float
         }
+    ]
     """
     obj_id = get_object(object_identifier)['id']
     req_json = request.get_json()
     utc_times = req_json.get('times', None)
     if utc_times == None or not isinstance(utc_times, list):
-        abort(400, "Invalid Argument")
+        abort(400, 'Invalid Argument')
 
     times_in_J2000 = {}
     for t in utc_times:
@@ -172,9 +194,9 @@ def get_frame_data(object_identifier):
             J2000time = spyce.utc_to_et(t)
             times_in_J2000[t] = J2000time
         except spyce.InvalidArgumentError:
-            abort(400, "Invalid time strinet")
+            abort(400, 'Invalid time strinet')
         except spyce.InternalError:
-            print("[WARN]: unknown error parsing date: ", t)
+            print('[WARN]: unknown error parsing date: ', t)
     observer = get_object(req_json.get('observer', EARTH))['id']
     frames = []
 
@@ -190,26 +212,29 @@ def get_frame_data(object_identifier):
             pass
     return jsonify(frames)
 
+
 @app.route('/api/convert/et', methods=['POST'])
 def toJ2000():
     """
-        input:
-        {
-            utc_time: <ISO_8601 string>
-        }
-        returns: <time_convert_obj>
+    Convert a time from UTC to ET (J2000).
 
-        time_conver_obj: {
-            UTC: <ISO_8601 string>
-            J2000: <float>
-        }
+    Request body:
+    {
+        utc_time: <ISO_8601 string>,
+    }
+
+    Response:
+    {
+        UTC: <ISO_8601 string>,
+        J2000: <float>,
+    }
     """
     req_json = request.get_json()
     if req_json == None:
-        abort(400, "Missing json request body")
+        abort(400, 'Missing json request body')
     time = req_json.get("utc_time", None)
     if time == None:
-        abort(400, "utc_time param missing")
+        abort(400, 'utc_time param missing')
 
     try:
         return jsonify({
@@ -217,53 +242,57 @@ def toJ2000():
             'J2000': spyce.utc_to_et(str(time))
         })
     except spyce.InvalidArgumentError:
-        abort(400, "Invalid Time String")
+        abort(400, 'Invalid Time String')
     except spyce.InternalError:
         abort(500)
+
 
 @app.route('/api/convert/utc', methods=['POST'])
 def toUTC():
     """
-        input:
-        {
-            et_time: <float>
-        }
-        returns: <time_convert_obj>
+    Convert a time from ET (J2000) to UTC.
 
-        time_conver_obj: {
-            UTC: <ISO_8601 string>
-            J2000: <float>
-        }
+    Request body:
+    {
+        et_time: <float>,
+    }
+
+    Response:
+    {
+        UTC: <ISO_8601 string>,
+        J2000: <float>,
+    }
     """
     req_json = request.get_json()
     if req_json == None:
-        abort(400, "missing json request body")
+        abort(400, 'missing json request body')
     time = req_json.get("et_time", None)
     if time == None:
-        abort(400, "et_time field missing")
+        abort(400, 'et_time field missing')
 
     try:
         float(time)
     except ValueError:
-        abort(400, "et_time param malformed")
+        abort(400, 'et_time param malformed')
 
     try:
         return jsonify({
-            'UTC': spyce.et_to_utc(time, "ISOC"),
+            'UTC': spyce.et_to_utc(time, 'ISOC'),
             'J2000': float(time)
         })
     except ValueError:
-        abort(400, "Time is not in J2000 format: must be a float")
+        abort(400, 'Time is not in J2000 format: must be a float')
     except spyce.InvalidArgumentError:
-        abort(400, "J2000 value is inappropriate.")
+        abort(400, 'J2000 value is inappropriate.')
     except spyce.InternalError:
         abort(500)
+
 
 if __name__ == '__main__':
     try:
         load_config()
     except Exception as e:
-        print ("[ERROR]: Unable to load config")
+        print ('[ERROR]: Unable to load config')
 
     port = os.getenv('PORT', 5000)
     host = '0.0.0.0'
