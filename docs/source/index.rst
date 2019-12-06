@@ -7,7 +7,8 @@ This is the documentation for the LunaH-MAP trajectory visualizer.
     :maxdepth: 2
     :caption: Contents:
 
-    api
+    rest_api
+    spyce_api
 
 Indices and tables
 ==================
