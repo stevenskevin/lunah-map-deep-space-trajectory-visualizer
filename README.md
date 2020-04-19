@@ -141,3 +141,28 @@ sudo npm explore npm -g -- npm install node-gyp@latest
 ```
 
 From this point on, run all `npm` commands with `sudo`, even those that aren't shown with it in this readme. (TODO: find a better method for updating Node that doesn't cause this problem.)
+
+
+## Running Tests
+
+Once Spyce has been compiled and the Flask server runs, you can run the automatic test suite.
+
+Start by installing pytest:
+```
+sudo pip3 install pytest
+```
+
+Next, navigate to the `tests_static` folder and download the following files there:
+```
+https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls
+https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de430.bsp
+https://naif.jpl.nasa.gov/pub/naif/APOLLO/kernels/fk/apollo_naif_ids.tf
+https://naif.jpl.nasa.gov/pub/naif/APOLLO/kernels/spk/apollo15-1.bsp
+```
+
+Finally, navigate back to the project root and run:
+```
+python3 -m pytest
+```
+
+The whole test suite will run.

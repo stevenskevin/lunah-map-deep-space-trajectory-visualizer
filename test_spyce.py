@@ -7,7 +7,7 @@ import spyce
 # Constants
 #
 
-STATIC_FOLDER = pathlib.Path('static')
+STATIC_FOLDER = pathlib.Path('tests_static')
 
 # https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/
 LEAPSECONDS_KERNEL_FILES = [
@@ -47,12 +47,12 @@ def kernel_files(filenames):
     strs), and unloads them when the test is finished.
     """
     for fn in filenames:
-        spyce.add_kernel(str(fn))
+        spyce.add_kernel(str(fn.resolve()))
 
-    yield [str(fn) for fn in filenames]
+    yield [str(fn.resolve()) for fn in filenames]
 
     for fn in filenames:
-        spyce.remove_kernel(str(fn))
+        spyce.remove_kernel(str(fn.resolve()))
 
 
 @pytest.fixture(scope='session')

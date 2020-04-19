@@ -1,8 +1,11 @@
 from flask import (Flask, request, send_from_directory, redirect, jsonify, abort, json)
 import spyce
-import os
+import os, os.path
 
 EARTH = 399
+
+# This can be overridden by the automatic tests
+STATIC_FILES_DIRECTORY = 'dist'
 
 app = Flask(__name__)
 kernels = []
@@ -14,22 +17,26 @@ main_subject_name = ''
 # Helper Functions
 #
 
-def load_config():
+def load_config(conf_data=None):
     """
     Load the information from config/config.json into appropriate
-    global variables
+    global variables.
+    conf_data overrides the json data (used for automatic testing)
     """
     global main_subject_id
     global main_subject_name
 
-    with open('config/config.json') as conf_file:
-        conf_data = json.load(conf_file)
-        for kern in conf_data['kernels']:
-            kernel_filepath = 'config/kernels/' + kern
-            spyce.add_kernel(kernel_filepath)
-            kernels.append(kernel_filepath)
-        main_subject_id = conf_data['main_subject_id']
-        main_subject_name = conf_data['main_subject_name']
+    if conf_data is None:
+        with open('config/config.json', 'r', encoding='utf-8') as conf_file:
+            conf_data = json.load(conf_file)
+
+    for kern in conf_data['kernels']:
+        kernel_filepath = os.path.normpath('config/kernels/' + kern)
+        spyce.add_kernel(kernel_filepath)
+        kernels.append(kernel_filepath)
+
+    main_subject_id = conf_data['main_subject_id']
+    main_subject_name = conf_data['main_subject_name']
 
 
 def get_object(identifier):
@@ -93,7 +100,7 @@ def get_file(filename):
     """
     Get the requested file path from the dist/ folder
     """
-    return send_from_directory('dist', filename)
+    return send_from_directory(STATIC_FILES_DIRECTORY, filename)
 
 
 @app.route('/api/objects', methods=['GET'])
@@ -137,7 +144,7 @@ def get_coverage_window(object_identifier):
             windows_piecewise += spyce.get_coverage_windows(k, NAIF_id)
             windows_piecewise.sort(key=lambda x: x[0])
         except spyce.InternalError:
-            #object does not exist in this kernel.
+            # Object does not exist in this kernel.
             pass
     if len(windows_piecewise) > 0:
         return jsonify({

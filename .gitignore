@@ -8,6 +8,7 @@ dist
 # Misc
 .DS_Store
 .idea
+__pycache__/
 
 # IDE Files
 .vscode/
@@ -18,3 +19,6 @@ build/
 
 # Private Things
 test_files/
+
+# Compiled Spyce
+spyce.so
