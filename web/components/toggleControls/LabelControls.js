@@ -7,7 +7,7 @@ class LabelControls extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showLabels: this.props.showLabels
+      showLabels:  this.props.showLabels
     };
     this.handleClick = this.handleClick.bind(this)
   }

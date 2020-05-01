@@ -13,7 +13,7 @@ const au_p_gl = math.eval(`1 / 100`);
 const gl_p_au = math.number(100);
 
 /**
- * Internal Conversion Functions
+ * Internal Conversion Functions, I wouldn't mess with these unless you spot some math errors.
  */
 function to_iso(date) {
     return new Date(date).toISOString()
@@ -28,14 +28,31 @@ function to_au(km) {
  * @name get_main_object()
  * @description Get the main object for the model
  */
+//I'll briefly describe how one of these functions works, the rest are extremely similar.
 exports.get_main_object =
 async function() {
-    try {
+    try { //Try catch incase we disconnect
+
+        //So, basically what we do is we send a request to our Flask server, you can find all of the possible requests in the FlaskServer.py file, this one in particular calls:
+        //@app.route('/api/objects/<object_identifier>', methods=['GET'])
+        //It then will call the corresponding function, and obtain a response. This response contains a response status code, and data.
+
+        //These are the HTML response status codes:
+        /*Informational responses (100–199),
+        Successful responses (200–299),
+        Redirects (300–399),
+        Client errors (400–499),
+        and Server errors (500–599).*/
+
         let response = await axios.get("/objects/main");
 
+        //Our code defines a successful response as responding with a response status code of 200
         if(response.status == 200) {
+            //If that is the case, return the data
             return response.data;
         }
+        //Otherwise then we have an undefined error because we failed to properly retrieve the data, if there's an error we can log it, otherwise we just return undefined.
+        //Do note that the rest of the program is set up to handle an undefnied response, so it won't explode.
     } catch(error) {
         console.log(error);
     }
@@ -176,6 +193,9 @@ async function(object) {
         let response = await axios.get(`/objects/${object}/coverage`);
 
         if(response.status == 200) {
+            console.log("COVERAGE:")
+            console.log("START:" + response.data["start"])
+            console.log("END:" + response.data["end"])
             return {
                 start: new Date(response.data["start"]),
                 end: new Date(response.data["end"])

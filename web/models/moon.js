@@ -1,6 +1,6 @@
 import * as THREE from '../three/three';
 import { loadTexture } from '../textures/texture';
-import moonTextureImg from '../textures/moon.jpg'
+import moonTextureImg from '../textures/2k_moon.jpg'
 
 export default class Moon {
     constructor(size,moonScale) {

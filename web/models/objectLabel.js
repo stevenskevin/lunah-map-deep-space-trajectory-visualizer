@@ -13,7 +13,6 @@ export default
 class ObjectLabel {
   constructor(object, string) {
     this.object = object;
-
     let html_label = document.createElement("div");
     html_label.className = "text-label",
     html_label.style.position = 'absolute';
@@ -39,7 +38,10 @@ class ObjectLabel {
     screen_position.project(camera);
 
     //get height of object
-    let obj_width = new THREE.Box3().setFromObject(this.object).getSize().y;
+    //updated below to prevent warning spam in console
+    let bounding_box = new THREE.Box3().setFromObject(this.object);
+    let obj_width = new THREE.Vector3();
+    obj_width = bounding_box.getSize(obj_width).y;
     //get ratio of size of object to size of screen
     let display_ratio = obj_width / visibleHeightOfObject(this.object, camera);
     //get display height of object in pixels

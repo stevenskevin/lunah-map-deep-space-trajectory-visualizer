@@ -6,6 +6,7 @@ import { selectCurrentCamera } from '../../reducers';
 const SOLAR = 'solar';
 const MOON = 'moon';
 const SPACECRAFT = 'spacecraft';
+const TEMPE = 'tempe';
 
 class CameraControls extends Component {
   constructor(props) {
@@ -31,6 +32,8 @@ class CameraControls extends Component {
           onClick={() => {this.handleClick(MOON)}}>Moon</button>
         <button className={'toggleControlsButton' + (this.state.selectedCamera === SPACECRAFT ? ' selected' : '')}
           onClick={() => {this.handleClick(SPACECRAFT)}}>Spacecraft</button>
+        <button className={'toggleControlsButton' + (this.state.selectedCamera === TEMPE ? ' selected' : '')}
+          onClick={() => {this.handleClick(TEMPE)}}>Tempe</button>
       </div>
     )
   }

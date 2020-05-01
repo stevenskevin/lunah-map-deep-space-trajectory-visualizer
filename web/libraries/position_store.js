@@ -12,12 +12,20 @@ const base_objects = [
 let app_store = {}
 let timeout_ref = undefined;
 let will_refresh_loop = false;
+let offset_time = new Date();
 
-
+/**
+ * @name init_object(obj)
+ * @description initialize each existing object in the app_store dictionary to store ALL of the important data
+ * @param object: obj
+ */
 async function init_object(obj) {
+  //get the data and coverage for the object
+  //Note coverage is the time window where positioning data exists
   let obj_data = await net.get_object(obj);
   let obj_cov = await net.get_coverage(obj);
 
+  //Then we add a new entry for that object with 4 keys/values:
   app_store.objects[obj] = {
     name: obj_data.name,
     id: obj_data.id,
@@ -26,6 +34,10 @@ async function init_object(obj) {
   }
 }
 
+/**
+ * @name update_objects()
+ * @description update each object in the app_store dictionary
+ */
 async function update_objects() {
   for(let key of Object.keys(app_store.objects)) {
     let spice_pos = await net.get_frame(key, "earth", app_store.working_date);
@@ -53,32 +65,47 @@ async function update_objects() {
   }
 }
 
+/**
+ * @name init_store()
+ * @description initialize the app_store dict and begin our update loop
+ */
 export
 async function init_store() {
+  //get the coverage of the main object, and store it
   app_store.coverage = await net.get_coverage("main");
   if(new Date() > app_store.coverage.start && new Date() < app_store.coverage.end) {
     app_store.working_date = new Date();
   } else {
     app_store.working_date = new Date(app_store.coverage.start);
   }
+  //dispatch to the application that we are updating the simulation time to the start of the coverage window
   reduxStore.dispatch({type: UPDATE_SIMULATION_TIME, payload: app_store.working_date.getTime() })
   app_store.update_frequency = 1;
 
+  //define each object in the app store to be empty
   app_store.objects = {};
+  //then for each object, intialize it and then wait for each object to be initially updated before continuing
   for(let obj of base_objects) {
     await init_object(obj);
   }
   await update_objects();
 
+  //here we start our update loop using some javascript hacks
   will_refresh_loop = true;
   start_loop();
 }
 
 export
+/**
+ * @name start_loop() 
+ * @description repeatedly calls request_loop() and then times out the request if it exceeds the updatePeriod
+ */
+ //NOTE: this is what allows the application to recover from short disconnections
 function start_loop() {
   timeout_ref = setTimeout(request_loop, config.updatePeriod);
 }
 
+//occastionally needed in some weird edge cases
 export
 function restart_loop() {
   stop_loop();
@@ -90,9 +117,15 @@ function stop_loop() {
   clearTimeout(timeout_ref);
 }
 
+/**
+ * @name request_loop()
+ * @description request the position of all of the objects in the simulation and update them
+ */
 async function request_loop() {
+  //first we update our time based on our time period, then dispatch that we are updating the time to that time.
   app_store.working_date.setTime(app_store.working_date.getTime() + (config.updatePeriod * app_store.update_frequency));
   reduxStore.dispatch({type: UPDATE_SIMULATION_TIME, payload: app_store.working_date.getTime()});
+  //if we are inside the coverage window still, update our objects and restart this loop
   if(app_store.working_date < app_store.coverage.end && app_store.working_date > app_store.coverage.start) {
     update_objects();
 
@@ -102,9 +135,11 @@ async function request_loop() {
       return;
     }
   }
+  //If we are outside the coverage window, stop the update loop.
   stop_loop();
 }
 
+//these are all just short helper functions
 export
 function get_working_date() {
   return app_store.working_date;
@@ -147,7 +182,7 @@ function get_object_coverage(object) {
   return app_store.objects[object].coverage;
 }
 
-export 
+export
 function get_coverage() {
   return app_store.coverage;
 }

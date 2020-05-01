@@ -1,8 +1,8 @@
 import * as THREE from '../three/three';
 import { loadTexture } from '../textures/texture';
-import earthTextureImg from '../textures/1_earth_8k.jpg';
-import earthBumpImg from '../textures/nasa_bump_map.png';
-
+import earthTextureImg from '../textures/earthmap1k.jpg';
+import earthBumpImg from '../textures/earthbump1k.jpg';
+//changed above textures to allow texture loading on lower end systems
 export default class Earth {
     constructor(size, earthScale) {
         this.size = size;

@@ -6,6 +6,7 @@ import SimulationControls from "./components/SimulationControls";
 import { Provider } from 'react-redux';
 import store from './store';
 
+//Utilize Redux to define our app, it has two sections, SpaceScene and SimulationControls, which are imported above.
 const App = () =>{
   return (
     <div>
@@ -16,4 +17,5 @@ const App = () =>{
     </div>
   )
 };
+//Render above application to the div we defined in our index.html file named "app"
 render(<App />, document.getElementById("app"));

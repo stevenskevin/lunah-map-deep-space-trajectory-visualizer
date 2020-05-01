@@ -1,7 +1,7 @@
 let config = {
-    backendURL: "localhost:5000",
+    backendURL: "localhost:5000", //this should be the ip of your webserver
     mainSpacecraftName: "LMAP",
-    updatePeriod: 30000 //30 seconds
+    updatePeriod: 1000//30 seconds = 30000
 }
 
 export default config;

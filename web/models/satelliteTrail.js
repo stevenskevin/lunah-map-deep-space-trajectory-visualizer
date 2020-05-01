@@ -2,9 +2,6 @@ import * as THREE from '../three/three';
 
 import * as net from '../libraries/network_layer'
 
-import { loadTexture } from '../textures/texture';
-import earthTextureImg from '../textures/1_earth_8k.jpg';
-import earthBumpImg from '../textures/nasa_bump_map.png';
 
 export default class SatelliteTrail {
     constructor(sat_object) {

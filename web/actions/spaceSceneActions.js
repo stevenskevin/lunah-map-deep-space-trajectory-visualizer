@@ -8,6 +8,7 @@ export const TOGGLE_LABELS = 'TOGGLE_LABELS';
 
 /**
  * Action dispatchers (Redux)
+ * Essentially these are called when the user performs an action that requires an update to our scene (aka. clicks on a button)
  */
 export const updateSimulationTime = (newTime) => dispatch => {
   dispatch({type: UPDATE_SIMULATION_TIME, payload: newTime});

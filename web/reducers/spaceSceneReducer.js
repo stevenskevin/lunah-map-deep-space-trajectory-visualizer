@@ -11,7 +11,7 @@ const initialState = {
   animationSpeed: 1,
   trailType: 'partial',
   camera: 'solar',
-  showLabels: false
+  showLabels: true
 }
 
 const spaceSceneReducer = (state = {}, action) => {

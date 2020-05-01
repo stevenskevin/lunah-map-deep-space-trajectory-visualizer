@@ -1,0 +1,44 @@
+Basic Explanation of File Structure here:
+
+
+Actions contains the code for the action dispatchers to the store, you can read more about them here:
+https://redux.js.org/basics/actions/
+
+Components contains most of the code for the two components of the application, which is the WebGL 3d Space Scene, and then the Simulation Controls box below the simulation.
+	- Folders "sliders" and "toggleControls" contain individual js files for each control to allow for ease of use
+	- sceneHelper.js basically contains all the helper functions we need to get the simulation running
+	- SpaceScene.js is the actual code for the Space Scene utilizing the helper functions defined in sceneHelper.js
+	- SimulationControls.js is the actual code for the Simulation Controls box, utilizing all the code in the two folders mentioned above.
+
+Config holds arguably the most important file in this entire structure, here's an example of what it can have:
+
+	let config = {
+	    backendURL: "45.79.39.223:5000",
+	    mainSpacecraftName: "LMAP",
+	    updatePeriod: 1000
+	}
+
+	export default config;
+
+
+	backendURL is the ip address and port that the application is going to be using, if you are running the application locally this MUST BE SET TO LOCALHOST. (so localhost:5000)
+	mainSpacecraftName is just the String that the spacecraft is labeled with that you are simulating
+	updatePeriod is how often the scene polls the server for new positions, this is in milliseconds. Please note: if this value is too high, it can cause instability, if the value is too low, then the simulation looks very choppy and the satellite can teleport around.
+
+Libraries is where the bulk of the heavy lifting for the application is done. You'll notice two files:
+	- network_layer.js: This is the file that is responsible for connecting to the flask python server to ultimately obtain the responses from NASA's SPICE library. All of the functions are simple getters, but run through a network stack.
+
+	- position_store.js: This is the file that holds all of our data structures. It updates the dict that all the positions are stored in, performs any necessary conversions (for example we convert from SPICE coordinates to ThreeJS coordinates). Be very careful modifying this file as slight changes can result in explosions.
+
+Models is simple, each of the javascript files inside is responsible for a different visual element in the simulation, which currently is the earth, moon, objectLabels, satellite, and satelliteTrail. NOTE: currently the satellite.js file is not beint used because we are now loading the model for the satellite inside sceneHelper.js's addObjects method. This is because if you attempt to load the model in an outside file you can't force the scene generation to pause for an amount of time, waiting for the model to load (since it does take time) before continuing to load without the model. This is because the function is asynchronous, changing this causes other headaches, so that was the compromise.
+
+Reducers are another super handy feature of Redux, they allow us to specify how the app's state changes based on the actions (from the folder actions) the user triggers. You can read more here:
+https://redux.js.org/basics/reducers
+
+Styles is just css files and some default defined colors. None of us are css wizards so these are all barebones and simple.
+
+Textures contains all of the textures we utilize, and texture.js just defines a simple loader for these.
+
+Three contains all of the library files we're using from external sources.
+!! None of the work in these files is our own. !!
+You shouldn't touch these unless absolutely necessary.
